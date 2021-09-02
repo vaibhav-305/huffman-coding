@@ -40,7 +40,7 @@ string huffman::decimal_to_binary(int in)
 		temp += ('0' + in % 2);
 		in /= 2;
 	}
-	result.append(8 - temp.size(), '0');													//append '0' ahead to let the result become fixed length of 8
+	result.append(8 - temp.size(), '0');				//append '0' ahead to let the result become fixed length of 8
 	for (int i = temp.size() - 1; i >= 0; i--)												
 	{
 		result += temp[i];
@@ -66,7 +66,7 @@ inline void huffman::build_tree(string& path, char a_code)
 			current = current->right;														 
 		}
 	}
-	current->id = a_code;																	//attach id to the leaf
+	current->id = a_code;						//attach id to the leaf
 }
 
 huffman::huffman(string in, string out)
@@ -122,14 +122,14 @@ void huffman::coding_save()
 	out_file.open(out_file_name, ios::out | ios::binary);
 	string in = "", s = "";
 
-	in += (char)pq.size();																	//the first byte saves the size of the priority queue
-	priority_queue<node_ptr, vector<node_ptr>, compare> temp(pq);
+	in += (char)pq.size();									//the first byte saves the size of the priority queue
+	priority_queue<node_ptr, vector<node_ptr>, compare> temp(pq);            //initialized by copying pq into temp.
 	while (!temp.empty())
 	{//get all characters and their huffman codes for output
 		node_ptr current = temp.top();
 		in += current->id;
-		s.assign(127 - current->code.size(), '0'); 											//set the codes with a fixed 128-bit string form[000¡­¡­1 + real code]
-		s += '1';																			//'1' indicates the start of huffman code
+		s.assign(127 - current->code.size(), '0'); 					//set the codes with a fixed 128-bit string form[000Â¡Â­Â¡Â­1 + real code]
+		s += '1';									//'1' indicates the start of huffman code
 		s.append(current->code);
 		in += (char)binary_to_decimal(s.substr(0, 8));										
 		for (int i = 0; i < 15; i++)
@@ -141,6 +141,8 @@ void huffman::coding_save()
 	}
 	s.clear();
 
+	
+	//writing encoded data in o/p file 
 	in_file.get(id);
 	while (!in_file.eof())
 	{//get the huffman code
@@ -157,7 +159,7 @@ void huffman::coding_save()
 	{//append number of 'count' '0' to the last few codes to create the last byte of text
 		s.append(count, '0');
 	}
-	in += (char)binary_to_decimal(s);															//save number of 'count' at last
+	in += (char)binary_to_decimal(s);							//save number of 'count' at last
 	in += (char)count;
 
 	out_file.write(in.c_str(), in.size());
@@ -168,13 +170,13 @@ void huffman::coding_save()
 void huffman::recreate_huffman_tree()
 {
 	in_file.open(in_file_name, ios::in | ios::binary);
-	unsigned char size;																			//unsigned char to get number of node of humman tree
+	unsigned char size;									//unsigned char to get number of node of humman tree
 	in_file.read(reinterpret_cast<char*>(&size), 1);
 	root = new huffman_node;
 	for (int i = 0; i < size; i++)
 	{
 		char a_code;
-		unsigned char h_code_c[16];																//16 unsigned char to obtain the binary code
+		unsigned char h_code_c[16];							//16 unsigned char to obtain the binary code
 		in_file.read(&a_code, 1);
 		in_file.read(reinterpret_cast<char*>(h_code_c), 16);
 		string h_code_s = "";
@@ -184,7 +186,7 @@ void huffman::recreate_huffman_tree()
 		}
 		int j = 0;
 		while (h_code_s[j] == '0')
-		{//delete the added '000¡­¡­1' to get the real huffman code
+		{//delete the added '000Â¡Â­Â¡Â­1' to get the real huffman code
 			j++;
 		}
 		h_code_s = h_code_s.substr(j + 1);
@@ -197,12 +199,12 @@ void huffman::decoding_save()
 {
 	in_file.open(in_file_name, ios::in | ios::binary);
 	out_file.open(out_file_name, ios::out);
-	unsigned char size;																		//get the size of huffman tree
+	unsigned char size;								//get the size of huffman tree
 	in_file.read(reinterpret_cast<char*>(&size), 1);
-	in_file.seekg(-1, ios::end);															//jump to the last one byte to get the number of '0' append to the string at last
+	in_file.seekg(-1, ios::end);							//jump to the last one byte to get the number of '0' append to the string at last
 	char count0;
 	in_file.read(&count0, 1);
-	in_file.seekg(1 + 17 * size, ios::beg);													//jump to the position where text starts
+	in_file.seekg(1 + 17 * size, ios::beg);						//jump to the position where text starts
 
 	vector<unsigned char> text;
 	unsigned char textseg;
